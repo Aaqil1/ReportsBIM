@@ -1,0 +1,83 @@
+global:
+  imageRegistry: your-registry.io/edjo-bim
+  imageTag: "1.0.0"
+
+postgres:
+  enabled: true
+  image: postgres:15-alpine
+  database: archivedb
+  username: archivedb_user
+  password: archivedb_pass
+  persistence:
+    enabled: true
+    size: 10Gi
+
+kafka:
+  enabled: false  # External Kafka assumed
+  bootstrapServers: "kafka:9092"
+
+authService:
+  enabled: true
+  replicas: 1
+  image: auth-service
+  port: 8081
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+reportsMs:
+  enabled: true
+  replicas: 3
+  image: reports-ms
+  port: 8082
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+
+clientPerformanceSvc:
+  enabled: true
+  replicas: 1
+  image: client-performance-svc
+  port: 8083
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+aimsConfigCentral:
+  enabled: true
+  replicas: 1
+  image: aims-config-central
+  port: 8084
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+apiGatewayBff:
+  enabled: true
+  replicas: 2
+  image: api-gateway-bff
+  port: 8080
+  serviceType: LoadBalancer
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"

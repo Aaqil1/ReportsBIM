@@ -1,0 +1,65 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway-bff
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      max-in-flight-requests-per-connection: 1
+      enable-idempotence: true
+
+jwt:
+  jwks-uri: http://localhost:8081/oauth2/jwks
+
+services:
+  performance:
+    url: http://localhost:8083
+  aims-config:
+    url: http://localhost:8084
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      enrichment:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 60s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+  retry:
+    instances:
+      enrichment:
+        maxAttempts: 3
+        waitDuration: 500ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+  timelimiter:
+    instances:
+      enrichment:
+        timeoutDuration: 5s
+
+logging:
+  level:
+    root: INFO
+    com.edjobim.gateway: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{correlationId}] - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,circuitbreakers
+  endpoint:
+    health:
+      probes:
+        enabled: true

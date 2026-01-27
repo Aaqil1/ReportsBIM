@@ -1,0 +1,57 @@
+{{- if .Values.aimsConfigCentral.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aims-config-central
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "edjo-bim.labels" . | nindent 4 }}
+    component: aims-config-central
+spec:
+  replicas: {{ .Values.aimsConfigCentral.replicas }}
+  selector:
+    matchLabels:
+      {{- include "edjo-bim.selectorLabels" . | nindent 6 }}
+      component: aims-config-central
+  template:
+    metadata:
+      labels:
+        {{- include "edjo-bim.selectorLabels" . | nindent 8 }}
+        component: aims-config-central
+    spec:
+      containers:
+      - name: aims-config-central
+        image: "{{ .Values.global.imageRegistry }}/{{ .Values.aimsConfigCentral.image }}:{{ .Values.global.imageTag }}"
+        ports:
+        - containerPort: {{ .Values.aimsConfigCentral.port }}
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "k8s"
+        resources:
+          {{- toYaml .Values.aimsConfigCentral.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: {{ .Values.aimsConfigCentral.port }}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: {{ .Values.aimsConfigCentral.port }}
+          initialDelaySeconds: 10
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aims-config-central
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    {{- include "edjo-bim.selectorLabels" . | nindent 4 }}
+    component: aims-config-central
+  ports:
+  - port: {{ .Values.aimsConfigCentral.port }}
+    targetPort: {{ .Values.aimsConfigCentral.port }}
+{{- end }}
